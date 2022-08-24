@@ -8,7 +8,7 @@
 #############
 
 # Conda environment name
-CONDA_ENV="d3"
+CONDA_ENV="test"
 
 # Skip conda prompts
 CONDA_YES=1
@@ -22,15 +22,16 @@ export MPI_PATH=$MPI_ROOT
 
 # Install fftw from conda, otherwise FFTW_PATH must be set
 INSTALL_FFTW=0
-export FFTW_PATH=/home1/eanders/builddir/conda_install/fftw_install_new
-#export FFTW_PATH=/nasa/intel/Compiler/2020.4.304/mkl/include/fftw/
-#export FFTW_PATH=$PKGSRC_BASE
+export FFTW_PATH="`pwd`/fftw_install"
+#first should work...but doesn't
+#export FFTW_PATH=$MKLROOT/include/fftw
+#export FFTW_PATH=$PKGSRC_BASE #no parallel.
 
 # Install HDF5 from conda, otherwise HDF5_DIR must be set to your custom HDF5 prefix
 # Note: HDF5 from conda will only be built with parallel support if MPI is installed from conda
 # Note: If your custom HDF5 is built with parallel support, HDF5_MPI must be set to "ON"
 INSTALL_HDF5=0
-export HDF5_DIR=/home1/eanders/builddir/conda_install/hdf5_install
+export HDF5_DIR="`pwd1`/hdf5_install"
 export HDF5_MPI="ON"
 
 
@@ -220,6 +221,12 @@ CC=mpicc python3 -m pip install --no-cache http://github.com/dedalusproject/deda
 ## no-build-isolation to use established stack for building wheel
 #git clone https://github.com/DedalusProject/dedalus.git src/dedalusv3
 #python3 -m pip install --no-cache --no-build-isolation -e src/dedalusv3
+
+echo "Disabled threading by default in the environment"
+conda env config vars set OMP_NUM_THREADS=1
+conda env config vars set NUMEXPR_MAX_THREADS=1
+
+
 
 
 echo "Installation complete in conda environment '${CONDA_ENV}'"
