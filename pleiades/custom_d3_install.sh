@@ -31,7 +31,7 @@ export FFTW_PATH="`pwd`/fftw_install"
 # Note: HDF5 from conda will only be built with parallel support if MPI is installed from conda
 # Note: If your custom HDF5 is built with parallel support, HDF5_MPI must be set to "ON"
 INSTALL_HDF5=0
-export HDF5_DIR="`pwd1`/hdf5_install"
+export HDF5_DIR="`pwd`/hdf5_install"
 export HDF5_MPI="ON"
 
 
@@ -136,13 +136,13 @@ conda install "${CARGS[@]}" -c conda-forge pip wheel setuptools cython
 case "${BLAS}" in
 "openblas")
     echo "Installing conda-forge openblas, numpy, scipy"
-    conda install "${CARGS[@]}" -c conda-forge "libblas=*=*openblas" numpy scipy
+    conda install "${CARGS[@]}" -c conda-forge "libblas=*=*openblas" "numpy>=1.20.0" scipy
     # Dynamically link FFTW
     export FFTW_STATIC=0
     ;;
 "mkl")
     echo "Installing conda-forge mkl, numpy, scipy"
-    conda install "${CARGS[@]}" -c conda-forge "libblas=*=*mkl" numpy scipy
+    conda install "${CARGS[@]}" -c conda-forge "libblas=*=*mkl" "numpy>=1.20.0" scipy
     # Statically link FFTW to avoid MKL symbols
     export FFTW_STATIC=1
     ;;
@@ -213,7 +213,12 @@ conda install "${CARGS[@]}" -c conda-forge scikit-umfpack
 echo "Installing dedalus with pip"
 # CC=mpicc to ensure proper MPI linking
 # no-cache to avoid wheels from previous pip installs
-CC=mpicc python3 -m pip install --no-cache http://github.com/dedalusproject/dedalus/zipball/master/
+#Build from source:
+git clone -b master https://github.com/DedalusProject/dedalus.git ./dedalus-d3
+python3 -m pip install -e dedalus-d3
+
+#stock dedalus install:
+#CC=mpicc python3 -m pip install --no-cache http://github.com/dedalusproject/dedalus/zipball/master/
 
 
 #echo "Installing dedalus with pip"
