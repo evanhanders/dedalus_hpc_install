@@ -3,12 +3,20 @@
 # Dedalus stack builder using conda, with options for own MPI and FFTW.
 # Run this file after installing conda and activating the base environment.
 
+# Be sure you have the appropriate modules loaded. Call 'module list' to check what modules you have.
+# My output is:
+#````````````````````````````````````````````
+# Currently Loaded Modulefiles:
+#  1) comp-intel/2020.4.304   2) pkgsrc/2021Q2           3) mpi-hpe/mpt.2.25        4) mpi-hpe/mpt             5) szip/2.1.1
+#````````````````````````````````````````````
+#Modules 1-4 are required. The szip module is good to install *if* you are doing a custom hdf5 build.
+
 #############
 ## Options ##
 #############
 
 # Conda environment name
-CONDA_ENV="test"
+CONDA_ENV="d3-pleiades"
 
 # Skip conda prompts
 CONDA_YES=1
@@ -30,9 +38,13 @@ export FFTW_PATH="`pwd`/fftw_install"
 # Install HDF5 from conda, otherwise HDF5_DIR must be set to your custom HDF5 prefix
 # Note: HDF5 from conda will only be built with parallel support if MPI is installed from conda
 # Note: If your custom HDF5 is built with parallel support, HDF5_MPI must be set to "ON"
-INSTALL_HDF5=0
-export HDF5_DIR="`pwd`/hdf5_install"
-export HDF5_MPI="ON"
+### Conda install
+INSTALL_HDF5=1
+
+### Custom install -- uncomment to use.
+#INSTALL_HDF5=0
+#export HDF5_DIR="`pwd`/hdf5_install"
+#export HDF5_MPI="ON"
 
 
 # BLAS options for numpy/scipy: "openblas" or "mkl"
