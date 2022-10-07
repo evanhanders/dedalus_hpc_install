@@ -19,7 +19,7 @@ else
 fi
 
 cd $FFTW_PATH
-if [ -e done ]
+if [ -e fftw_done ]
 then
     echo "FFTW already installed."
 else
@@ -61,6 +61,6 @@ else
 
     make
     make install
-    touch done
+    touch fftw_done
 fi
 cd ..
