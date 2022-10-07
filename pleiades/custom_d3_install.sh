@@ -227,17 +227,11 @@ echo "Installing dedalus with pip"
 # no-cache to avoid wheels from previous pip installs
 #Build from source:
 git clone -b master https://github.com/DedalusProject/dedalus.git ./dedalus-d3
-python3 -m pip install -e dedalus-d3
+CC=mpicc python3 -m pip install --no-cache --no-build-isolation -e dedalus-d3
 
 #stock dedalus install:
 #CC=mpicc python3 -m pip install --no-cache http://github.com/dedalusproject/dedalus/zipball/master/
 
-
-#echo "Installing dedalus with pip"
-## no-cache to avoid wheels from previous pip installs
-## no-build-isolation to use established stack for building wheel
-#git clone https://github.com/DedalusProject/dedalus.git src/dedalusv3
-#python3 -m pip install --no-cache --no-build-isolation -e src/dedalusv3
 
 echo "Disabled threading by default in the environment"
 conda env config vars set OMP_NUM_THREADS=1
