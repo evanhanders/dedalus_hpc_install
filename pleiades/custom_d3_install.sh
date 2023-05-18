@@ -1,22 +1,14 @@
 #!/usr/bin/env bash
 
-# Dedalus stack builder using conda, with options for own MPI and FFTW.
+# Dedalus stack builder using conda, with options for custom MPI/FFTW/HDF5.
 # Run this file after installing conda and activating the base environment.
-
-# Be sure you have the appropriate modules loaded. Call 'module list' to check what modules you have.
-# My output is:
-#````````````````````````````````````````````
-# Currently Loaded Modulefiles:
-#  1) comp-intel/2020.4.304   2) pkgsrc/2021Q2           3) mpi-hpe/mpt.2.25        4) mpi-hpe/mpt             5) szip/2.1.1
-#````````````````````````````````````````````
-#Modules 1-4 are required. The szip module is good to install *if* you are doing a custom hdf5 build.
 
 #############
 ## Options ##
 #############
 
 # Conda environment name
-CONDA_ENV="d3-pleiades"
+CONDA_ENV="pleiades-d3"
 
 # Skip conda prompts
 CONDA_YES=1
@@ -24,39 +16,46 @@ CONDA_YES=1
 # Quiet conda output
 CONDA_QUIET=1
 
-# Install openmpi from conda, otherwise MPI_PATH must be set
+# Install OpenMPI from conda, otherwise MPI_PATH must be set to your custom MPI prefix
 INSTALL_MPI=0
 export MPI_PATH=$MPI_ROOT
 
-# Install fftw from conda, otherwise FFTW_PATH must be set
+# Install FFTW from conda, otherwise FFTW_PATH must be set to your custom FFTW prefix
+# Note: FFTW from conda will likely only work with custom MPIs that are OpenMPI
 INSTALL_FFTW=0
 export FFTW_PATH="`pwd`/fftw_install"
-#first should work...but doesn't
-#export FFTW_PATH=$MKLROOT/include/fftw
-#export FFTW_PATH=$PKGSRC_BASE #no parallel.
 
 # Install HDF5 from conda, otherwise HDF5_DIR must be set to your custom HDF5 prefix
 # Note: HDF5 from conda will only be built with parallel support if MPI is installed from conda
 # Note: If your custom HDF5 is built with parallel support, HDF5_MPI must be set to "ON"
-### Conda install
 INSTALL_HDF5=1
-
-### Custom install -- uncomment to use.
-#INSTALL_HDF5=0
-#export HDF5_DIR="`pwd`/hdf5_install"
+#export HDF5_DIR=
 #export HDF5_MPI="ON"
 
-
 # BLAS options for numpy/scipy: "openblas" or "mkl"
-#BLAS="openblas"
-BLAS="mkl"
+BLAS="openblas"
 
 # Python version
-PYTHON_VERSION="3.8"
+PYTHON_VERSION="3.10"
+
+# Install native arm64 build on Apple Silicon
+# Note: Only relevent on Apple Silicon machines, where native arm64 builds may exhibit errors
+APPLE_SILICON_BUILD_ARM=0
 
 ############
 ## Script ##
 ############
+
+prompt_to_proceed () {
+    while true; do
+        read -p "Proceed ([y]/n)? " proceed
+        case "${proceed}" in
+            "y" | "") break ;;
+            "n") exit 1 ;;
+            *) ;;
+        esac
+    done
+}
 
 # Check requirements
 if [ "${CONDA_DEFAULT_ENV}" != "base" ]
@@ -99,18 +98,16 @@ then
     fi
 fi
 
+# Unset arm build flag unless on Apple Silicon
+if [ $(uname -s) == "Darwin" ] && [ $(uname -m) == "arm64" ]
+then
+    ON_APPLE_SILICON=1
+else
+    ON_APPLE_SILICON=0
+    APPLE_SILICON_BUILD_ARM=0
+fi
 
-prompt_to_proceed () {
-    while true; do
-        read -p "Proceed ([y]/n)? " proceed
-        case "${proceed}" in
-            "y" | "") break ;;
-            "n") exit 1 ;;
-            *) ;;
-        esac
-    done
-}
-
+# Set conda flags
 CARGS=(-n ${CONDA_ENV})
 if [ ${CONDA_YES} -eq 1 ]
 then
@@ -138,23 +135,39 @@ then
     prompt_to_proceed
 else
     echo "Building new conda environment '${CONDA_ENV}'"
-    conda create "${CARGS[@]}" -c conda-forge "python=${PYTHON_VERSION}"
-    conda activate ${CONDA_ENV}
+    if [ ${ON_APPLE_SILICON} -eq 1 ] && [ ${APPLE_SILICON_BUILD_ARM} -eq 0 ]
+    then
+        CONDA_SUBDIR=osx-64 conda create "${CARGS[@]}"
+        conda activate ${CONDA_ENV}
+        conda config --env --set subdir osx-64
+    else
+        conda create "${CARGS[@]}"
+        conda activate ${CONDA_ENV}
+    fi
 fi
 
-echo "Updating conda-forge pip, wheel, setuptools, cython"
-conda install "${CARGS[@]}" -c conda-forge pip wheel setuptools cython
+echo "Setting conda-forge as strict priority channel"
+conda config --add channels conda-forge
+conda config --set channel_priority strict
+
+echo "Installing conda-forge python, pip, wheel, setuptools, cython"
+conda install "${CARGS[@]}" "python=${PYTHON_VERSION}" pip wheel setuptools cython
 
 case "${BLAS}" in
 "openblas")
     echo "Installing conda-forge openblas, numpy, scipy"
-    conda install "${CARGS[@]}" -c conda-forge "libblas=*=*openblas" "numpy>=1.20.0" scipy
+    # Pin openblas on apple silicon since 0.3.20 causes ggev errors
+    if [ ${APPLE_SILICON_BUILD_ARM} -eq 1 ]
+    then
+        conda install "${CARGS[@]}" "libopenblas<0.3.20"
+    fi
+    conda install "${CARGS[@]}" "libblas=*=*openblas" numpy scipy
     # Dynamically link FFTW
     export FFTW_STATIC=0
     ;;
 "mkl")
     echo "Installing conda-forge mkl, numpy, scipy"
-    conda install "${CARGS[@]}" -c conda-forge "libblas=*=*mkl" "numpy>=1.20.0" scipy
+    conda install "${CARGS[@]}" "libblas=*=*mkl" numpy scipy
     # Statically link FFTW to avoid MKL symbols
     export FFTW_STATIC=1
     ;;
@@ -167,7 +180,7 @@ esac
 if [ ${INSTALL_MPI} -eq 1 ]
 then
     echo "Installing conda-forge compilers, openmpi, mpi4py"
-    conda install "${CARGS[@]}" -c conda-forge compilers openmpi openmpi-mpicc mpi4py
+    conda install "${CARGS[@]}" compilers openmpi openmpi-mpicc mpi4py
 else
     echo "Not installing openmpi"
     echo "Installing mpi4py with pip"
@@ -182,7 +195,7 @@ if [ ${INSTALL_FFTW} -eq 1 ]
 then
     echo "Installing conda-forge fftw"
     # no-deps to avoid pulling openmpi
-    conda install "${CARGS[@]}" -c conda-forge --no-deps "fftw=*=*openmpi*"
+    conda install "${CARGS[@]}" --no-deps "fftw=*=*openmpi*"
 else
     echo "Not installing fftw"
 fi
@@ -215,31 +228,20 @@ else
 fi
 
 echo "Installing conda-forge docopt, matplotlib"
-conda install "${CARGS[@]}" -c conda-forge docopt matplotlib
+conda install "${CARGS[@]}" docopt matplotlib
 
-
-# conda install umfpack
-echo "Conda installing umfpack"
-conda install "${CARGS[@]}" -c conda-forge scikit-umfpack
-
-echo "Installing dedalus with pip"
+echo "Installing latest dedalus with pip from master on github"
 # CC=mpicc to ensure proper MPI linking
 # no-cache to avoid wheels from previous pip installs
-#Build from source:
-git clone -b master https://github.com/DedalusProject/dedalus.git ./dedalus-d3
-CC=mpicc python3 -m pip install --no-cache --no-build-isolation -e dedalus-d3
-
-#stock dedalus install:
-#CC=mpicc python3 -m pip install --no-cache http://github.com/dedalusproject/dedalus/zipball/master/
-
+git clone https://github.com/DedalusProject/dedalus.git src/dedalus-d3
+CC=mpicc python3 -m pip install -e src/dedalus-d3
 
 echo "Disabled threading by default in the environment"
 conda env config vars set OMP_NUM_THREADS=1
 conda env config vars set NUMEXPR_MAX_THREADS=1
 
-
-
-
+echo
 echo "Installation complete in conda environment '${CONDA_ENV}'"
+echo
 conda deactivate
 
