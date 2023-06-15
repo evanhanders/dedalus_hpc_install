@@ -44,7 +44,7 @@ export HDF5_MPI="ON"
 BLAS="openblas"
 
 # Python version
-PYTHON_VERSION="3.10"
+PYTHON_VERSION="3.11"
 
 # Install native arm64 build on Apple Silicon
 # Note: Only relevent on Apple Silicon machines, where native arm64 builds may exhibit errors
