@@ -2,10 +2,10 @@
 
 To install Dedalus, load the following modules:
 
-gcc/10.2.0
-openmpi/4.0.5-gcc10.2.0
-fftw/3.3.8
-anaconda3/2022.10
+- gcc/10.2.0
+- openmpi/4.0.5-gcc10.2.0
+- fftw/3.3.8
+- anaconda3/2022.10
 
 and then run the install script provided in this repo (dedalus_hpc_install/bridges-2/conda_install_dedalus2.sh)
 
@@ -14,21 +14,20 @@ It is probably useful to add the following lines to your .bashrc to make loading
     module load gcc/10.2.0
     module load openmpi/4.0.5-gcc10.2.0
     module load fftw/3.3.8
-    module load anaconda3/2022.10
     
     dedalus2 () {
-	    module load anaconda3/2022.10
+	        module load anaconda3/2022.10
             conda activate dedalus2
     }
     
     dedalus3 () {
-	    module load anaconda3/2022.10
+	        module load anaconda3/2022.10
             conda activate dedalus3
     }
     
     deactivate () {
             conda deactivate
-	    module unload anaconda3/2022.10
+	        module unload anaconda3/2022.10
     }
   
 Then in a terminal, to activate dedalus, you should be able to just type e.g.,

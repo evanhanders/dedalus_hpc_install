@@ -8,18 +8,18 @@ It is probably useful to add the following lines to your .bashrc to make loading
     module load hdf5/1.10.7
     
     dedalus2 () {
-	    module load anaconda
+	        module load anaconda
             conda activate dedalus2
     }
     
     dedalus3 () {
-	    module load anaconda
+	        module load anaconda
             conda activate dedalus3
     }
     
     deactivate () {
             conda deactivate
-	    module unload anaconda
+	        module unload anaconda
     }
   
 Then in a terminal, to activate dedalus, you should be able to just type e.g.,
