@@ -1,6 +1,6 @@
 # Installing Dedalus
 
-To install Dedalus, simply load the appropriate modules (fftw, hdf5, and anaconda -- the rest should be loaded by default) and then run the custom install script of your choice.
+To install Dedalus, simply load the appropriate modules (fftw, hdf5, and anaconda -- the rest should be loaded by default) and then run the install script provided in this repo (dedalus_hpc_install/anvil/conda_install_dedalus2.sh).
 
 It is probably useful to add the following lines to your .bashrc to make loading and unloading modules easy:
 
@@ -8,18 +8,18 @@ It is probably useful to add the following lines to your .bashrc to make loading
     module load hdf5/1.10.7
     
     dedalus2 () {
-	    module load anaconda
+	        module load anaconda
             conda activate dedalus2
     }
     
     dedalus3 () {
-	    module load anaconda
+	        module load anaconda
             conda activate dedalus3
     }
     
     deactivate () {
             conda deactivate
-	    module unload anaconda
+	        module unload anaconda
     }
   
 Then in a terminal, to activate dedalus, you should be able to just type e.g.,
