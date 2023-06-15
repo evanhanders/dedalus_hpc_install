@@ -1,0 +1,3 @@
+PROJECT=
+srun --partition=compute  --pty --account=$PROJECT --nodes=2 --ntasks-per-node=128 \
+    --mem=128G -t 00:30:00 --wait=0 --export=ALL /bin/bash
