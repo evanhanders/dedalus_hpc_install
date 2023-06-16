@@ -1,0 +1,2 @@
+PROJECT=
+sinteractive -N1 -n128 -A $PROJECT -p debug -t 02:00:00
