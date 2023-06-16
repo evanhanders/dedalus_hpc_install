@@ -1,5 +1,5 @@
 #!/bin/sh -l
-# FILENAME:  submit.cmd
+# FILENAME:  submit_example
 
 #SBATCH -A <PROJECT_ID>
 #SBATCH -p wholenode # the default queue is "shared" queue
