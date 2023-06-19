@@ -1,0 +1,27 @@
+#!/bin/sh -l
+# FILENAME:  submit_example
+
+#SBATCH -A <PROJECT_ID>
+#SBATCH -p compute
+#SBATCH --nodes=2
+#SBATCH --ntasks-per-node=128
+#SBATCH --time=00:30:00
+#SBATCH --job-name dedalus2
+#SBATCH --output="dedalus.o%j"
+#SBATCH --error="dedalus.e%j"
+
+module purge
+module load DefaultModules
+
+module load gcc/10.2.0
+module load openmpi/4.1.3
+module load fftw/3.3.10
+module load hdf5/1.10.7
+module load anaconda3/2021.05
+
+source /cm/shared/apps/spack/0.17.3/cpu/b/opt/spack/linux-rocky8-zen/gcc-8.5.0/anaconda3-2021.05-q4munrgvh7qp4o7r3nzcdkbuph4z7375/bin/activate
+
+conda activate dedalus2
+
+
+mpiexec -n 256 python3 rayleigh_benard.py
