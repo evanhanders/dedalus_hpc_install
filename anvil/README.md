@@ -32,7 +32,11 @@ and to deactivate it, just type
 
 # Setting up your workflow
 
-It's probably useful to create a scripts/ directory in your $HOME and to copy and modify the scripts in the local handy_scripts/ folder (which I haven't made yet oops) into $HOME/scripts.
+It's probably useful to create a scripts/ directory in your $HOME and to copy and modify the scripts in the local handy_scripts/ folder into $HOME/scripts.
+This folder contains some simple scripts for grabbing interactive cores and checking your allocation.
+I'd also recommend adding the following line(s) to your .bashrc for easier navigation:
+
+> alias queue="squeue -u $USER"
 
 You should also make it easy to get to your scratch and projects directories by linking them to something like 'scratchdir', etc., e.g.,:
 
@@ -47,6 +51,16 @@ and note the entries under the "projects" type. Then, to link to the appropriate
 > ln -s /anvil/projects/x-phyXXXXXX $HOME/projectdir1
 
 where x-phyXXXXXX is whatever the "Location" entry is when you run myquota.
+
+Note that you might want to change your default allocation. To do so, you can add the following lines to your .bashrc:
+
+> export ALLOCATION=<ALLOCATION_NAME>
+> export RCAC_PROJECT=/anvil/projects/x-$ALLOCATION
+> export CLUSTER_WORK=/anvil/projects/x-$ALLOCATION
+> export CLUSTER_PROJECT=/anvil/projects/x-$ALLOCATION
+> export WORK=/anvil/projects/x-$ALLOCATION
+> export PROJECT=/anvil/projects/x-$ALLOCATION
+> export RCAC_WORK=/anvil/projects/x-$ALLOCATION
 
 
 For future reference, in case the default modules are updated and this script suddenly stops working and we need to troubleshoot, here are my currently loaded modules:
